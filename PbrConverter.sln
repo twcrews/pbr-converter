@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30320.27
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PbrConverter", "PbrConverter\PbrConverter.csproj", "{ED49F6CD-680F-4D50-A533-D8F3F5BDC4E6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{ED49F6CD-680F-4D50-A533-D8F3F5BDC4E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED49F6CD-680F-4D50-A533-D8F3F5BDC4E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED49F6CD-680F-4D50-A533-D8F3F5BDC4E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED49F6CD-680F-4D50-A533-D8F3F5BDC4E6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B2C3E49B-7EC2-4B49-BB48-10CF310B1745}
+	EndGlobalSection
+EndGlobal
