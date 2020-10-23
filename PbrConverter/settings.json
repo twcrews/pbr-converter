@@ -224,6 +224,22 @@
       "crafting_table_front",
       "crafting_table_side",
       "crafting_table_top",
+      "crimson_door_lower",
+      "crimson_door_top",
+      "crimson_log_side",
+      "crimson_log_top",
+      "crimson_planks",
+      "crimson_trapdoor",
+      "stripped_crimson_stem_side",
+      "stripped_crimson_stem_top",
+      "stripped_warped_stem_side",
+      "stripped_warped_stem_top",
+      "warped_door_lower",
+      "warped_door_top",
+      "warped_planks",
+      "warped_stem_side",
+      "warped_stem_top",
+      "warped_trapdoor",
       "crimson_fungus",
       "crimson_nylium_side",
       "crimson_nylium_top",
@@ -776,6 +792,7 @@
       "wool_colored_silver",
       "wool_colored_white",
       "wool_colored_yellow"
-    ]
+    ],
+    "texture-set-version": "1.16.100"
   }
 }
