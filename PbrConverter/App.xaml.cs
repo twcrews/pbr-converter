@@ -5,12 +5,14 @@ using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using Crews.Utility.PbrConverter;
+using Crews.Utility.PbrConverter.Models;
 using Newtonsoft.Json;
 
 namespace PbrConverter
@@ -21,10 +23,16 @@ namespace PbrConverter
     public partial class App : Application
     {
         private MainWindow Window { get; set; }
+        public static ConfigurationModel Configuration { get; set; }
 
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+
+            Configuration = JsonConvert.DeserializeObject<ConfigurationModel>(
+                new StreamReader(Assembly.GetExecutingAssembly()
+                .GetManifestResourceStream("Crews.Utility.PbrConverter.settings.json")).ReadToEnd());
+
             Window = new MainWindow
             {
                 ActionText = "CONVERT",
@@ -75,7 +83,19 @@ namespace PbrConverter
                         colorfilename + ".texture_set.json"))
                     {
                         byte[] content = new UTF8Encoding(true).GetBytes(
-                            JsonConvert.SerializeObject(ResourcePack.GenerateTextureSet(colorfilename)));
+                            JsonConvert.SerializeObject(new TextureSetModel
+                            {
+                                FormatVersion = Configuration.AppData.TextureSetVersion,
+                                MinecraftTextureSet = new TextureSetModel.TextureSetInfo
+                                {
+                                    Color = colorfilename,
+                                    MER = ResourcePack.GetPbrFile(colorfile, PbrType.MER),
+                                    Normal = ResourcePack.GetPbrFile(colorfile, PbrType.Normal)
+                                }
+                            }, Formatting.Indented, new JsonSerializerSettings
+                            {
+                                NullValueHandling = NullValueHandling.Ignore
+                            }));
                         fs.Write(content);
                     }
                 }

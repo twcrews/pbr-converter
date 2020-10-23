@@ -1,9 +1,13 @@
 ﻿using System;
 using System.IO;
+using System.Globalization;
 using System.Collections.Generic;
 using System.Text;
 using Newtonsoft.Json;
 using System.Windows.Media.Media3D;
+using Crews.Utility.PbrConverter.Models;
+using PbrConverter;
+using System.Linq;
 
 namespace Crews.Utility.PbrConverter
 {
@@ -17,38 +21,23 @@ namespace Crews.Utility.PbrConverter
         /// </summary>
         /// <param name="path">The root path of the resource pack.</param>
         /// <returns>Returns a string representing the name of the pack.</returns>
-        public static string GetName(string path) =>
-            JsonConvert.DeserializeObject<Manifest>(
+        public static string GetName(string path)
+        {
+            string manifestName = JsonConvert.DeserializeObject<ManifestModel>(
                 File.ReadAllText(path + @"\manifest.json")).Header.Name;
 
-        /// <summary>
-        /// Retrieves a TextureSet object with default values based on the provided colorFile name.
-        /// </summary>
-        /// <param name="colorFile">The name of the color file (without extension or path).</param>
-        /// <returns>Returns a TextureSet object.</returns>
-        public static TextureSet GenerateTextureSet(string colorFile) =>
-            GenerateTextureSet("1.16.100", colorFile, colorFile + "_mer", colorFile + "_normal");
-
-        /// <summary>
-        /// Retrieves a TextureSet object with the provided values.
-        /// </summary>
-        /// <param name="formatVersion">The format_version property of the texture set.</param>
-        /// <param name="color">The color file name or rbg/rgba value of the texture set.</param>
-        /// <param name="mer">The metalness/emissive/roughness file name or rbg/rgba value of the texture set.</param>
-        /// <param name="normal">The normal file name or rbg/rgba value of the texture set.</param>
-        /// <returns></returns>
-        public static TextureSet GenerateTextureSet(string formatVersion, object color, object mer, object normal)
-        {
-            return new TextureSet
+            if (manifestName == "pack.name")
             {
-                FormatVersion = formatVersion,
-                MinecraftTextureSet = new TextureSet.TextureSetInfo
-                {
-                    Color = color,
-                    MER = mer,
-                    Normal = normal
-                }
-            };
+                // Get localized pack name.
+                List<string> languages = JsonConvert.DeserializeObject<List<string>>(
+                    File.ReadAllText(path + @"\texts\languages.json"));
+                string currentCulture = CultureInfo.CurrentCulture.Name.Replace('-', '_');
+                string langName = languages.Contains(currentCulture) ? currentCulture : languages.First();
+                string langFileText = File.ReadAllText(path + @"\texts\" + langName + ".lang");
+                return langFileText.Split("\n")[0].Split("=")[1].Trim();
+            }
+
+            return manifestName;
         }
 
         /// <summary>
@@ -80,65 +69,57 @@ namespace Crews.Utility.PbrConverter
             return returnList;
         }
 
-        private static bool IsColorFile(string filename) {
+        /// <summary>
+        /// Gets the PBR file name associated with an existing color file, if it exists.
+        /// </summary>
+        /// <param name="colorFilePath">The color file's path.</param>
+        /// <param name="pbrType">The PBR file type to retrieve.</param>
+        /// <returns>Returns a string representing the PBR file name if it exists, or null if it doesn't.</returns>
+        public static string GetPbrFile(string colorFilePath, PbrType pbrType)
+        {
+            string pbrFileSuffix;
+
+            switch (pbrType)
+            {
+                case PbrType.MER:
+                    pbrFileSuffix = "_mer";
+                    break;
+                case PbrType.Normal:
+                    pbrFileSuffix = "_normal";
+                    break;
+                default:
+                    return null;
+            }
+
+            string pbrFilePath = Path.GetDirectoryName(colorFilePath) + @"\" +
+                Path.GetFileNameWithoutExtension(colorFilePath) + pbrFileSuffix;
+
+            string[] matchingFiles = Directory.GetFiles(Path.GetDirectoryName(colorFilePath),
+                Path.GetFileName(pbrFilePath) + ".*");
+
+            if (matchingFiles.Length > 0)
+            {
+                return Path.GetFileNameWithoutExtension(pbrFilePath);
+            }
+            return null;
+        }
+
+        private static bool IsColorFile(string filename)
+        {
             List<string> supportedExtensions = new List<string> { ".TGA", ".PNG", ".JPG", ".JPEG" };
             if (supportedExtensions.Contains(Path.GetExtension(filename).ToUpper()))
             {
                 string noExtFile = Path.GetFileNameWithoutExtension(filename);
-                return !noExtFile.EndsWith("_mer") && !noExtFile.EndsWith("_normal");
+                return App.Configuration.AppData.Blocks.Contains(noExtFile);
             }
             return false;
         }
+    }
 
-        /// <summary>
-        /// Model used to represent a manifest.json file.
-        /// </summary>
-        public class Manifest
-        {
-            [JsonProperty("format_version")]
-            public int FormatVersion { get; set; }
-            [JsonProperty("header")]
-            public ManifestInfo Header { get; set; }
-            [JsonProperty("modules")]
-            public List<ManifestInfo> Modules { get; set; }
-            [JsonProperty("capabilities")]
-            public string[] Capabilities { get; set; }
-
-            public class ManifestInfo
-            {
-                [JsonProperty("description")]
-                public string Description { get; set; }
-                [JsonProperty("name")]
-                public string Name { get; set; }
-                [JsonProperty("type")]
-                public string Type { get; set; }
-                [JsonProperty("uuid")]
-                public string UUID { get; set; }
-                public int[] Version { get; set; }
-                [JsonProperty("min_engine_version")]
-                public int[] MinEngineVersion { get; set; }
-            }
-        }
-
-        /// <summary>
-        /// Model used to represent a *.texture_set.json file.
-        /// </summary>
-        public class TextureSet
-        {
-            [JsonProperty("format_version")]
-            public string FormatVersion { get; set; }
-            [JsonProperty("minecraft:texture_set")]
-            public TextureSetInfo MinecraftTextureSet { get; set; }
-
-            public class TextureSetInfo
-            {
-                [JsonProperty("color")]
-                public object Color { get; set; }
-                [JsonProperty("metalness_emissive_roughness")]
-                public object MER { get; set; }
-                [JsonProperty("normal")]
-                public object Normal { get; set; }
-            }
-        }
+    public enum PbrType
+    {
+        Color,
+        MER,
+        Normal
     }
 }
