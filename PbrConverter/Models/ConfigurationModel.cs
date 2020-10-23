@@ -15,6 +15,8 @@ namespace Crews.Utility.PbrConverter.Models
 
         public class Data
         {
+            [JsonProperty("texture-set-version")]
+            public string TextureSetVersion { get; set; }
             [JsonProperty("blocks")]
             public List<string> Blocks { get; set; }
         }
