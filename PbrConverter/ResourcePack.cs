@@ -69,6 +69,12 @@ namespace Crews.Utility.PbrConverter
             return returnList;
         }
 
+        /// <summary>
+        /// Gets the PBR file name associated with an existing color file, if it exists.
+        /// </summary>
+        /// <param name="colorFilePath">The color file's path.</param>
+        /// <param name="pbrType">The PBR file type to retrieve.</param>
+        /// <returns>Returns a string representing the PBR file name if it exists, or null if it doesn't.</returns>
         public static string GetPbrFile(string colorFilePath, PbrType pbrType)
         {
             string pbrFileSuffix;
