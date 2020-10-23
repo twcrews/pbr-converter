@@ -67,7 +67,7 @@ namespace PbrConverter
         {
             try
             {
-                List<string> paths = ResourcePack.GetColorFiles(path);
+                List<string> paths = ResourcePack.GetColorFiles(path + @"\textures\blocks");
                 foreach (string colorfile in paths)
                 {
                     string colorfilename = Path.GetFileNameWithoutExtension(colorfile);
