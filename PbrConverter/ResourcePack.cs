@@ -2,9 +2,7 @@
 using System.IO;
 using System.Globalization;
 using System.Collections.Generic;
-using System.Text;
 using Newtonsoft.Json;
-using System.Windows.Media.Media3D;
 using Crews.Utility.PbrConverter.Models;
 using PbrConverter;
 using System.Linq;
@@ -32,7 +30,8 @@ namespace Crews.Utility.PbrConverter
                 List<string> languages = JsonConvert.DeserializeObject<List<string>>(
                     File.ReadAllText(path + @"\texts\languages.json"));
                 string currentCulture = CultureInfo.CurrentCulture.Name.Replace('-', '_');
-                string langName = languages.Contains(currentCulture) ? currentCulture : languages.First();
+                string langName = languages.Contains(currentCulture) ? 
+                    currentCulture : languages.First();
                 string langFileText = File.ReadAllText(path + @"\texts\" + langName + ".lang");
                 return langFileText.Split("\n")[0].Split("=")[1].Trim();
             }
@@ -41,7 +40,8 @@ namespace Crews.Utility.PbrConverter
         }
 
         /// <summary>
-        /// Retrieves all paths of color files (non-normal and non-mer) for a directory and all subdirectories.
+        /// Retrieves all paths of color files (non-normal and non-mer) for a directory and all 
+        /// subdirectories.
         /// </summary>
         /// <param name="path">The base path of the texture files.</param>
         /// <returns></returns>
@@ -65,7 +65,6 @@ namespace Crews.Utility.PbrConverter
                     returnList.Add(filename);
                 }
             }
-
             return returnList;
         }
 
@@ -74,7 +73,9 @@ namespace Crews.Utility.PbrConverter
         /// </summary>
         /// <param name="colorFilePath">The color file's path.</param>
         /// <param name="pbrType">The PBR file type to retrieve.</param>
-        /// <returns>Returns a string representing the PBR file name if it exists, or null if it doesn't.</returns>
+        /// <returns>
+        /// Returns a string representing the PBR file name if it exists, or null if it doesn't.
+        /// </returns>
         public static string GetPbrFile(string colorFilePath, PbrType pbrType)
         {
             string pbrFileSuffix;
@@ -106,20 +107,35 @@ namespace Crews.Utility.PbrConverter
 
         private static bool IsColorFile(string filename)
         {
-            List<string> supportedExtensions = new List<string> { ".TGA", ".PNG", ".JPG", ".JPEG" };
+            List<string> supportedExtensions = new List<string> 
+                { ".TGA", ".PNG", ".JPG", ".JPEG" };
             if (supportedExtensions.Contains(Path.GetExtension(filename).ToUpper()))
             {
                 string noExtFile = Path.GetFileNameWithoutExtension(filename);
-                return App.Configuration.AppData.Blocks.Contains(noExtFile);
+                return App.Configuration.AppData.Textures.Contains(noExtFile);
             }
             return false;
         }
     }
 
+    /// <summary>
+    /// PBR Type enumerable.
+    /// </summary>
     public enum PbrType
     {
+        /// <summary>
+        /// Represents a color PBR texture.
+        /// </summary>
         Color,
+
+        /// <summary>
+        /// Represents a MER PBR texture.
+        /// </summary>
         MER,
+
+        /// <summary>
+        /// Represents a Normal PBR texture.
+        /// </summary>
         Normal
     }
 }
