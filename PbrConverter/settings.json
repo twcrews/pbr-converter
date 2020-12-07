@@ -1,5 +1,6 @@
 {
   "data": {
+    "texture-set-version": "1.16.100",
     "textures": [
       "acacia_trapdoor",
       "ancient_debris_side",
@@ -792,7 +793,6 @@
       "wool_colored_silver",
       "wool_colored_white",
       "wool_colored_yellow"
-    ],
-    "texture-set-version": "1.16.100"
+    ]
   }
 }
