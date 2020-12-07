@@ -25,22 +25,28 @@ namespace Crews.Utility.PbrConverter.Models
         public class TextureSetInfo
         {
             /// <summary>
-            /// The path or value of the color texture.
+            /// The path or values of the color texture.
             /// </summary>
             [JsonProperty("color")]
             public object Color { get; set; }
 
             /// <summary>
-            /// The path or value of the MER texture.
+            /// The path or values of the MER texture.s
             /// </summary>
             [JsonProperty("metalness_emissive_roughness")]
             public object MER { get; set; }
 
             /// <summary>
-            /// The path or value of the Normal texture.
+            /// The path of the Normal texture.
             /// </summary>
             [JsonProperty("normal")]
-            public object Normal { get; set; }
+            public string Normal { get; set; }
+
+            /// <summary>
+            /// The path of the heightmap texture.
+            /// </summary>
+            [JsonProperty("heightmap")]
+            public string Heightmap { get; set; }
         }
     }
 }

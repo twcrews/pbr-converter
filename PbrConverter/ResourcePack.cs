@@ -136,6 +136,11 @@ namespace Crews.Utility.PbrConverter
         /// <summary>
         /// Represents a Normal PBR texture.
         /// </summary>
-        Normal
+        Normal,
+
+        /// <summary>
+        /// Represents a heightmap PBR texture.
+        /// </summary>
+        Heightmap
     }
 }
