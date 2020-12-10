@@ -14,6 +14,7 @@ using System.Windows;
 using Crews.Utility.PbrConverter;
 using Crews.Utility.PbrConverter.Models;
 using Newtonsoft.Json;
+using System.Threading;
 
 namespace PbrConverter
 {
@@ -65,44 +66,96 @@ namespace PbrConverter
             Window.PathEnabled = false;
             Window.StatusText = "Converting...";
             string pathCopy = Window.Path;
-            await Task.Run(() => Convert(pathCopy));
+            PbrImageFormat formatCopy = Window.ImageFormat;
+            bool removeUniformCopy = Window.RemoveUniform;
+            await Task.Run(() => Convert(pathCopy, formatCopy, removeUniformCopy));
             Window.StatusText = "Successfully converted resource pack!";
             Window.ActionEnabled = true;
             Window.PathEnabled = true;
         }
 
-        private void Convert(string path)
+        private void Convert(string path, PbrImageFormat format, bool removeSolids)
         {
             try
             {
                 List<string> paths = ResourcePack.GetColorFiles(path + @"\textures\blocks");
-                foreach (string colorfile in paths)
+                Parallel.ForEach(paths, (colorfile) =>
                 {
+                    string colorFileDir = Path.GetDirectoryName(colorfile) + 
+                        Path.DirectorySeparatorChar;
+
                     string colorfilename = Path.GetFileNameWithoutExtension(colorfile);
-                    using (FileStream fs = File.Create(Path.GetDirectoryName(colorfile) + @"\" +
-                        colorfilename + ".texture_set.json"))
+
+                    string merfile = colorFileDir + 
+                        ResourcePack.GetPbrFile(colorfile, PbrType.MER) + ;
+                    string normalfile = colorFileDir + 
+                        ResourcePack.GetPbrFile(colorfile, PbrType.Normal);
+                    string heightmapfile = colorFileDir + 
+                        ResourcePack.GetPbrFile(colorfile, PbrType.Heightmap);
+
+                    Texture colorTexture = new Texture(colorfile);
+                    Texture merTexture = merfile != null ? new Texture(merfile) : null;
+                    Texture normalTexture = normalfile != null ? new Texture(normalfile) : null;
+                    Texture heightmapTexture = heightmapfile != null ?
+                        new Texture(heightmapfile) : null;
+
+                    Dictionary<Texture, string> textures = new Dictionary<Texture, string>
                     {
-                        byte[] content = new UTF8Encoding(true).GetBytes(
-                            JsonConvert.SerializeObject(new TextureSetModel
+                        {colorTexture, colorfile },
+                        {merTexture, merfile },
+                        {normalTexture, normalfile },
+                        {heightmapTexture, heightmapfile }
+                    };
+
+                    if (removeSolids)
+                    {
+                        Parallel.ForEach(textures, (texture) =>
+                        {
+                            if (texture.Key != null && texture.Key.Solid)
                             {
-                                FormatVersion = Configuration.AppData.TextureSetVersion,
-                                MinecraftTextureSet = new TextureSetModel.TextureSetInfo
-                                {
-                                    Color = colorfilename,
-                                    MER = ResourcePack.GetPbrFile(colorfile, PbrType.MER),
-                                    Normal = ResourcePack.GetPbrFile(colorfile, PbrType.Normal)
-                                }
-                            }, Formatting.Indented, new JsonSerializerSettings
-                            {
-                                NullValueHandling = NullValueHandling.Ignore
-                            }));
-                        fs.Write(content);
+                                File.Delete(texture.Value);
+                                textures[texture.Key] = texture.Key.DisplayValue;
+                            }
+                        });
                     }
-                }
+
+                    if (format != null)
+                    {
+                        Parallel.ForEach(textures, (texture) =>
+                        {
+                            if (!texture.Value.StartsWith('['))
+                            {
+                                texture.Key.Save(Path.GetFileNameWithoutExtension(
+                                    texture.Value) + "." + format.Value, format);
+                                File.Delete(texture.Value);
+                            }
+                        });
+                    }
+
+                    using FileStream fs = File.Create(Path.GetDirectoryName(colorfile) + @"\" +
+                        colorfilename + ".texture_set.json");
+                    byte[] content = new UTF8Encoding(true).GetBytes(
+                        JsonConvert.SerializeObject(new TextureSetModel
+                        {
+                            FormatVersion = Configuration.AppData.TextureSetVersion,
+                            MinecraftTextureSet = new TextureSetModel.TextureSetInfo
+                            {
+                                Color = textures[colorTexture],
+                                MER = textures[merTexture],
+                                Normal = textures[normalTexture],
+                                Heightmap = textures[heightmapTexture]
+                            }
+                        }, Formatting.Indented, new JsonSerializerSettings
+                        {
+                            NullValueHandling = NullValueHandling.Ignore
+                        }));
+                    fs.Write(content);
+                });
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Error during conversion.", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(ex.Message, "Error during conversion.", MessageBoxButton.OK,
+                    MessageBoxImage.Error);
             }
         }
     }
