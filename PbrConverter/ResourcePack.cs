@@ -6,13 +6,14 @@ using Newtonsoft.Json;
 using Crews.Utility.PbrConverter.Models;
 using PbrConverter;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Crews.Utility.PbrConverter
 {
     /// <summary>
     /// Contains functions related to resource packs.
     /// </summary>
-    public class ResourcePack
+    public static class ResourcePack
     {
         /// <summary>
         /// Retrieves the name of a given resource pack.
@@ -58,13 +59,13 @@ namespace Crews.Utility.PbrConverter
             List<string> returnList = new List<string>();
             int sub = Convert.ToInt32(subdirectories);
 
-            foreach (string filename in Directory.GetFiles(path, "*.*", (SearchOption)sub))
+            Parallel.ForEach(Directory.GetFiles(path, "*.*", (SearchOption)sub), (filename) =>
             {
                 if (IsColorFile(filename))
                 {
                     returnList.Add(filename);
                 }
-            }
+            });
             return returnList;
         }
 
@@ -88,12 +89,15 @@ namespace Crews.Utility.PbrConverter
                 case PbrType.Normal:
                     pbrFileSuffix = "_normal";
                     break;
+                case PbrType.Heightmap:
+                    pbrFileSuffix = "_heightmap";
+                    break;
                 default:
                     return null;
             }
 
-            string pbrFilePath = Path.GetDirectoryName(colorFilePath) + @"\" +
-                Path.GetFileNameWithoutExtension(colorFilePath) + pbrFileSuffix;
+            string pbrFilePath = Path.GetDirectoryName(colorFilePath) + Path.DirectorySeparatorChar
+                + Path.GetFileNameWithoutExtension(colorFilePath) + pbrFileSuffix;
 
             string[] matchingFiles = Directory.GetFiles(Path.GetDirectoryName(colorFilePath),
                 Path.GetFileName(pbrFilePath) + ".*");
