@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Windows;
+using System.Windows.Controls;
+using Crews.Utility.PbrConverter;
 using Microsoft.WindowsAPICodePack.Dialogs;
 
 namespace PbrConverter
@@ -55,12 +57,45 @@ namespace PbrConverter
         }
 
         /// <summary>
-        /// Indicates whether textures should be optimized.
+        /// Indicates which file format should be used in the conversion.
         /// </summary>
-        public bool Optimize 
-        { 
-            get => OptimizeCheckBox.IsChecked == true; 
-            set => OptimizeCheckBox.IsChecked = value; 
+        public PbrImageFormat ImageFormat
+        {
+            get
+            {
+                if (FileFormatComboBox.SelectedItem == TgaComboBoxItem)
+                {
+                    return PbrImageFormat.Tga;
+                }
+                if (FileFormatComboBox.SelectedItem == PngComboBoxItem)
+                {
+                    return PbrImageFormat.Png;
+                }
+                if (FileFormatComboBox.SelectedItem == JpegComboBoxItem)
+                {
+                    return PbrImageFormat.Jpeg;
+                }
+                return null;
+            }
+            set
+            {
+                if (value == PbrImageFormat.Tga)
+                {
+                    FileFormatComboBox.SelectedItem = TgaComboBoxItem;
+                }
+                else if (value == PbrImageFormat.Png)
+                {
+                    FileFormatComboBox.SelectedItem = PngComboBoxItem;
+                }
+                else if (value == PbrImageFormat.Jpeg)
+                {
+                    FileFormatComboBox.SelectedItem = JpegComboBoxItem;
+                }
+                else
+                {
+                    FileFormatComboBox.SelectedItem = NullComboBoxItem;
+                }
+            }
         }
 
         /// <summary>

@@ -6,7 +6,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:local="clr-namespace:PbrConverter"
     mc:Ignorable="d"
-    Title="Resource Pack Converter" Height="300" Width="500"
+    Title="PBR Resource Pack Converter" Height="300" Width="500"
     ResizeMode="CanMinimize"
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     TextElement.Foreground="{DynamicResource MaterialDesignBody}"
@@ -15,7 +15,7 @@
     TextOptions.TextFormattingMode="Ideal" 
     TextOptions.TextRenderingMode="Auto"        
     Background="{DynamicResource MaterialDesignPaper}"
-    FontFamily="{DynamicResource MaterialDesignFont}"
+    FontFamily="{DynamicResource MaterialDesignFont}" WindowStartupLocation="CenterScreen"
 >
     <Grid>
         <StackPanel Margin="10 20" VerticalAlignment="Top">
@@ -37,17 +37,36 @@
                     TextChanged="PathTextBox_TextChanged"
                 />
             </DockPanel>
-            <StackPanel Orientation="Horizontal" Margin="0 20 0 0" IsEnabled="False">
-                <CheckBox 
-                    x:Name="OptimizeCheckBox" 
-                    x:FieldModifier="private" 
-                    Content="Optimize Files"
-                />
+            <StackPanel Orientation="Horizontal" Margin="0 20 0 0">
+                <ComboBox
+                    x:Name="FileFormatComboBox"
+                    x:FieldModifier="private"
+                    ToolTip="Convert texture files to the selected format, or choose 'Do not convert' to leave them alone."
+                    >
+                    <ComboBoxItem
+                        x:Name="TgaComboBoxItem"
+                        x:FieldModifier="private"
+                        IsSelected="True"
+                        >TGA (recommended)</ComboBoxItem>
+                    <ComboBoxItem
+                        x:Name="PngComboBoxItem"
+                        x:FieldModifier="private"
+                        >PNG</ComboBoxItem>
+                    <ComboBoxItem
+                        x:Name="JpegComboBoxItem"
+                        x:FieldModifier="private"
+                        >JPEG (not recommended)</ComboBoxItem>
+                    <ComboBoxItem
+                        x:Name="NullComboBoxItem"
+                        x:FieldModifier="private"
+                        >Do not convert</ComboBoxItem>
+                </ComboBox>
                 <CheckBox 
                     x:Name="RemoveUniformCheckBox" 
                     x:FieldModifier="private" 
                     Content="Remove uniform textures" 
-                    Margin="20 0 0 0"
+                    Margin="20 0 0 0" 
+                    ToolTip="Find and replace solid color texture images with channel values in the texture set JSON file."
                 />
             </StackPanel>
             <TextBlock 
@@ -55,7 +74,7 @@
                 x:FieldModifier="private"
                 Margin="0 30 0 0" 
                 TextWrapping="NoWrap"
-                TextTrimming="CharacterEllipsis" Opacity="0.5"
+                TextTrimming="CharacterEllipsis" Opacity="0.5" TextAlignment="Center"
             />
         </StackPanel>
         <Button 
