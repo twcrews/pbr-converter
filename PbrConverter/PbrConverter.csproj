@@ -6,6 +6,7 @@
     <UseWPF>true</UseWPF>
     <RootNamespace>Crews.Utility.PbrConverter</RootNamespace>
     <AssemblyName>Utility.PbrConverter</AssemblyName>
+    <Version>1.1.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
