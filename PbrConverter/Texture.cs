@@ -33,6 +33,11 @@ namespace Crews.Utility.PbrConverter
         public bool Solid => IsSolid();
 
         /// <summary>
+        /// Instantiates a null Texture.
+        /// </summary>
+        public Texture() { }
+
+        /// <summary>
         /// Instantiate a new Texture from a Bitmap.
         /// </summary>
         /// <param name="bitmap">A bitmap image object.</param>
@@ -55,13 +60,15 @@ namespace Crews.Utility.PbrConverter
         /// <param name="path">The path of an image file.</param>
         public Texture(string path)
         {
-            if (Path.GetExtension(path).ToUpper() == ".TGA")
-            {
-                Bitmap = TgaSharp.TGA.FromFile(path).ToBitmap();
-            } 
-            else
-            {
-                Bitmap = new Bitmap(path);
+            using (FileStream fs = new FileStream(path, FileMode.Open)) {
+                if (Path.GetExtension(path).ToUpper() == ".TGA")
+                {
+                    Bitmap = TgaSharp.TGA.FromStream(fs).ToBitmap();
+                }
+                else
+                {
+                    Bitmap = new Bitmap(fs);
+                }
             }
         }
 
@@ -72,7 +79,7 @@ namespace Crews.Utility.PbrConverter
         /// <param name="format">The format of the image to save.</param>
         public void Save(string path, PbrImageFormat format)
         {
-            if (format == PbrImageFormat.Tga)
+            if (Equals(format, PbrImageFormat.Tga))
             {
                 TgaSharp.TGA.FromBitmap(Bitmap).Save(path);
             }
