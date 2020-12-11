@@ -11,6 +11,12 @@ namespace Crews.Utility.PbrConverter
     public class PbrImageFormat
     {
         /// <summary>
+        /// List of supported PBR file extensions.
+        /// </summary>
+        public static readonly List<string> SupportedExtensions = new List<string>
+                { ".TGA", ".PNG", ".JPG", ".JPEG" };
+
+        /// <summary>
         /// String representation of the format.
         /// </summary>
         public string Value { get; private set; }

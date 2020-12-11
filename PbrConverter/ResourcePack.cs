@@ -104,22 +104,23 @@ namespace Crews.Utility.PbrConverter
 
             if (matchingFiles.Length > 0)
             {
-                return Path.GetFileNameWithoutExtension(pbrFilePath);
+                return matchingFiles[0];
             }
             return null;
         }
 
         private static bool IsColorFile(string filename)
         {
-            List<string> supportedExtensions = new List<string> 
-                { ".TGA", ".PNG", ".JPG", ".JPEG" };
-            if (supportedExtensions.Contains(Path.GetExtension(filename).ToUpper()))
+            if (IsTexture(filename))
             {
                 string noExtFile = Path.GetFileNameWithoutExtension(filename);
                 return App.Configuration.AppData.Textures.Contains(noExtFile);
             }
             return false;
         }
+
+        private static bool IsTexture(string path) =>
+            PbrImageFormat.SupportedExtensions.Contains(Path.GetExtension(path).ToUpper());
     }
 
     /// <summary>
