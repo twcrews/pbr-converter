@@ -24,8 +24,8 @@ namespace PbrConverter
         /// Indicates whether the Path area and browse button are enabled.
         /// </summary>
         public bool PathEnabled 
-        { 
-            get => PathDockPanel.IsEnabled; 
+        {
+            get => PathDockPanel.IsEnabled;
             set => PathDockPanel.IsEnabled = value; 
         }
 
@@ -122,10 +122,10 @@ namespace PbrConverter
         /// </summary>
         public MainWindow() => InitializeComponent();
 
-        private void ActionButton_Click(object sender, RoutedEventArgs e) => 
+        private void ActionButton_Click(object sender, RoutedEventArgs e) =>
             ActionClick.Invoke(this, e);
 
-        private void PathTextBox_TextChanged(object sender, RoutedEventArgs e) => 
+        private void PathTextBox_TextChanged(object sender, RoutedEventArgs e) =>
             PathChanged.Invoke(this, e);
 
         private void BrowseButton_Click(object sender, RoutedEventArgs e)
