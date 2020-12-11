@@ -1,20 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Reflection.Metadata.Ecma335;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using Crews.Utility.PbrConverter;
 using Crews.Utility.PbrConverter.Models;
 using Newtonsoft.Json;
-using System.Threading;
 
 namespace PbrConverter
 {
@@ -32,7 +26,8 @@ namespace PbrConverter
 
             Configuration = JsonConvert.DeserializeObject<ConfigurationModel>(
                 new StreamReader(Assembly.GetExecutingAssembly()
-                .GetManifestResourceStream("Crews.Utility.PbrConverter.settings.json")).ReadToEnd());
+                .GetManifestResourceStream("Crews.Utility.PbrConverter.settings.json"))
+                .ReadToEnd());
 
             Window = new MainWindow
             {
@@ -49,7 +44,8 @@ namespace PbrConverter
         {
             try
             {
-                Window.StatusText = "Successfully loaded \"" + ResourcePack.GetName(Window.Path) + "\".";
+                Window.StatusText = "Successfully loaded \"" +
+                    ResourcePack.GetName(Window.Path) + "\".";
                 Window.ActionEnabled = true;
             }
             catch (Exception ex)
@@ -81,23 +77,21 @@ namespace PbrConverter
                 List<string> paths = ResourcePack.GetColorFiles(path + @"\textures\blocks");
                 Parallel.ForEach(paths, (colorfile) =>
                 {
-                    string colorFileDir = Path.GetDirectoryName(colorfile) + 
+                    string colorFileDir = Path.GetDirectoryName(colorfile) +
                         Path.DirectorySeparatorChar;
 
                     string colorfilename = Path.GetFileNameWithoutExtension(colorfile);
 
-                    string merfile = colorFileDir + 
-                        ResourcePack.GetPbrFile(colorfile, PbrType.MER) + ;
-                    string normalfile = colorFileDir + 
-                        ResourcePack.GetPbrFile(colorfile, PbrType.Normal);
-                    string heightmapfile = colorFileDir + 
-                        ResourcePack.GetPbrFile(colorfile, PbrType.Heightmap);
+                    string merfile = ResourcePack.GetPbrFile(colorfile, PbrType.MER);
+                    string normalfile = ResourcePack.GetPbrFile(colorfile, PbrType.Normal);
+                    string heightmapfile = ResourcePack.GetPbrFile(colorfile, PbrType.Heightmap);
 
                     Texture colorTexture = new Texture(colorfile);
-                    Texture merTexture = merfile != null ? new Texture(merfile) : null;
-                    Texture normalTexture = normalfile != null ? new Texture(normalfile) : null;
+                    Texture merTexture = merfile != null ? new Texture(merfile) : new Texture();
+                    Texture normalTexture = normalfile != null ? new Texture(normalfile) :
+                        new Texture();
                     Texture heightmapTexture = heightmapfile != null ?
-                        new Texture(heightmapfile) : null;
+                        new Texture(heightmapfile) : new Texture();
 
                     Dictionary<Texture, string> textures = new Dictionary<Texture, string>
                     {
@@ -106,15 +100,16 @@ namespace PbrConverter
                         {normalTexture, normalfile },
                         {heightmapTexture, heightmapfile }
                     };
+                    List<Texture> texCopy = new List<Texture>(textures.Keys);
 
                     if (removeSolids)
                     {
-                        Parallel.ForEach(textures, (texture) =>
+                        Parallel.ForEach(texCopy, (texture) =>
                         {
-                            if (texture.Key != null && texture.Key.Solid)
+                            if (texture.Bitmap != null && texture.Solid)
                             {
-                                File.Delete(texture.Value);
-                                textures[texture.Key] = texture.Key.DisplayValue;
+                                File.Delete(textures[texture]);
+                                textures[texture] = texture.DisplayValue;
                             }
                         });
                     }
@@ -123,14 +118,30 @@ namespace PbrConverter
                     {
                         Parallel.ForEach(textures, (texture) =>
                         {
-                            if (!texture.Value.StartsWith('['))
+                            if (texture.Key.Bitmap != null && !texture.Value.StartsWith('['))
                             {
-                                texture.Key.Save(Path.GetFileNameWithoutExtension(
-                                    texture.Value) + "." + format.Value, format);
-                                File.Delete(texture.Value);
+                                if (File.Exists(texture.Value))
+                                {
+                                    File.Delete(texture.Value);
+                                }
+                                texture.Key.Save(Path.GetDirectoryName(texture.Value) +
+                                    Path.DirectorySeparatorChar +
+                                    Path.GetFileNameWithoutExtension(texture.Value) +
+                                    "." + format.Value, format);
                             }
                         });
                     }
+
+                    Parallel.ForEach(texCopy, (texture) =>
+                    {
+                        if (textures[texture] != null)
+                        {
+                            if (!textures[texture].StartsWith('['))
+                            {
+                                textures[texture] = Path.GetFileName(textures[texture]);
+                            }
+                        }
+                    });
 
                     using FileStream fs = File.Create(Path.GetDirectoryName(colorfile) + @"\" +
                         colorfilename + ".texture_set.json");
