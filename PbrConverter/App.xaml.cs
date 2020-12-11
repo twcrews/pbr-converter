@@ -93,7 +93,7 @@ namespace PbrConverter
                     Texture heightmapTexture = heightmapfile != null ?
                         new Texture(heightmapfile) : new Texture();
 
-                    Dictionary<Texture, string> textures = new Dictionary<Texture, string>
+                    Dictionary<Texture, object> textures = new Dictionary<Texture, object>
                     {
                         {colorTexture, colorfile },
                         {merTexture, merfile },
@@ -106,28 +106,33 @@ namespace PbrConverter
                     {
                         Parallel.ForEach(texCopy, (texture) =>
                         {
-                            if (texture.Bitmap != null && texture.Solid)
+                        if (textures[texture] as string != normalfile && 
+                            textures[texture] as string != heightmapfile &&
+                            texture.Bitmap != null && texture.Uniform)
                             {
-                                File.Delete(textures[texture]);
-                                textures[texture] = texture.DisplayValue;
+                                File.Delete(textures[texture] as string);
+                                textures[texture] = textures[texture] as string == colorfile ?
+                                texture.FullColorArray : texture.SolidColorArray;
                             }
                         });
                     }
 
                     if (format != null)
                     {
-                        Parallel.ForEach(textures, (texture) =>
+                        Parallel.ForEach(texCopy, (texture) =>
                         {
-                            if (texture.Key.Bitmap != null && !texture.Value.StartsWith('['))
+                            if (texture.Bitmap != null && textures[texture] is string)
                             {
-                                if (File.Exists(texture.Value))
+                                if (File.Exists(textures[texture] as string))
                                 {
-                                    File.Delete(texture.Value);
+                                    File.Delete(textures[texture] as string);
                                 }
-                                texture.Key.Save(Path.GetDirectoryName(texture.Value) +
-                                    Path.DirectorySeparatorChar +
-                                    Path.GetFileNameWithoutExtension(texture.Value) +
-                                    "." + format.Value, format);
+                                string newFile = Path.GetDirectoryName(
+                                    textures[texture] as string) + Path.DirectorySeparatorChar +
+                                    Path.GetFileNameWithoutExtension(
+                                        textures[texture] as string) + "." + format.Value;
+                                texture.Save(newFile, format);
+                                textures[texture] = newFile;
                             }
                         });
                     }
@@ -136,9 +141,9 @@ namespace PbrConverter
                     {
                         if (textures[texture] != null)
                         {
-                            if (!textures[texture].StartsWith('['))
+                            if (textures[texture] is string)
                             {
-                                textures[texture] = Path.GetFileName(textures[texture]);
+                                textures[texture] = Path.GetFileName(textures[texture] as string);
                             }
                         }
                     });
@@ -153,8 +158,8 @@ namespace PbrConverter
                             {
                                 Color = textures[colorTexture],
                                 MER = textures[merTexture],
-                                Normal = textures[normalTexture],
-                                Heightmap = textures[heightmapTexture]
+                                Normal = textures[normalTexture] as string,
+                                Heightmap = textures[heightmapTexture] as string
                             }
                         }, Formatting.Indented, new JsonSerializerSettings
                         {

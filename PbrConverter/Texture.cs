@@ -23,14 +23,19 @@ namespace Crews.Utility.PbrConverter
         public Color Value => Bitmap.GetPixel(0, 0);
 
         /// <summary>
-        /// The display string for a solid color value in JSON array format.
+        /// The full color value in JSON array format.
         /// </summary>
-        public string DisplayValue => ToArrayString(Value);
+        public int[] FullColorArray => ColorToArray(Value, true);
+
+        /// <summary>
+        /// The solid color value in JSON array format.
+        /// </summary>
+        public int[] SolidColorArray => ColorToArray(Value, false);
 
         /// <summary>
         /// 
         /// </summary>
-        public bool Solid => IsSolid();
+        public bool Uniform => IsSolid();
 
         /// <summary>
         /// Instantiates a null Texture.
@@ -176,7 +181,20 @@ namespace Crews.Utility.PbrConverter
             };
         }
 
-        private static string ToArrayString(Color color) => "[ " + color.R.ToString() + ", " + 
-            color.G.ToString() + ", " + color.B.ToString() + ", " + color.A.ToString() + " ]";
+        private static int[] ColorToArray(Color color, bool alpha)
+        {
+            return alpha ? new int[]
+                {
+                    color.R,
+                    color.G,
+                    color.B,
+                    color.A
+                } : new int[]
+                {
+                    color.R,
+                    color.G,
+                    color.B
+                };
+        }
     }
 }
