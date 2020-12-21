@@ -18,6 +18,7 @@ namespace PbrConverter
     public partial class App : Application
     {
         private MainWindow Window { get; set; }
+        private MessageWindow MessageWindow { get; set; }
         public static ConfigurationModel Configuration { get; set; }
 
         protected override void OnStartup(StartupEventArgs e)
@@ -35,17 +36,20 @@ namespace PbrConverter
                 ActionEnabled = false,
                 StatusText = "No valid resource pack selected."
             };
+            MessageWindow = new MessageWindow();
+
             Window.PathChanged += HandlePathChanged;
             Window.ActionClick += HandleActionButtonClick;
             Window.Show();
+            MessageWindow.Owner = Window;
         }
 
         private void HandlePathChanged(object sender, EventArgs e)
         {
             try
             {
-                Window.StatusText = "Successfully loaded \"" +
-                    ResourcePack.GetName(Window.Path) + "\".";
+                Window.StatusText =
+                    $"Successfully loaded \"{ResourcePack.GetName(Window.Path)}\".";
                 Window.ActionEnabled = true;
             }
             catch (Exception ex)
@@ -58,24 +62,36 @@ namespace PbrConverter
 
         private async void HandleActionButtonClick(object sender, EventArgs e)
         {
-            Window.ActionEnabled = false;
-            Window.PathEnabled = false;
-            Window.StatusText = "Converting...";
-            string pathCopy = Window.Path;
-            PbrImageFormat formatCopy = Window.ImageFormat;
-            bool removeUniformCopy = Window.RemoveUniform;
-            await Task.Run(() => Convert(pathCopy, formatCopy, removeUniformCopy));
-            Window.StatusText = "Successfully converted resource pack!";
-            Window.ActionEnabled = true;
-            Window.PathEnabled = true;
+            try
+            {
+                Window.ActionEnabled = false;
+                Window.PathEnabled = false;
+                Window.StatusText = "Converting...";
+                string pathCopy = Window.Path;
+                PbrImageFormat formatCopy = Window.ImageFormat;
+                bool removeUniformCopy = Window.RemoveUniform;
+                await Task.Run(() => Convert(pathCopy, formatCopy, removeUniformCopy));
+                Window.StatusText = "Successfully converted resource pack!";
+                Window.ActionEnabled = true;
+                Window.PathEnabled = true;
+            }
+            catch (Exception ex)
+            {
+                MessageWindow.Caption = "Error during conversion.";
+                MessageWindow.Message = ex.Message;
+                MessageWindow.ShowDialog();
+                Window.StatusText = "Failed to convert.";
+                Window.ActionEnabled = true;
+                Window.PathEnabled = true;
+            }
         }
 
         private void Convert(string path, PbrImageFormat format, bool removeSolids)
         {
-            try
+            List<string> paths = ResourcePack.GetColorFiles($"{path}\\textures\\blocks");
+            Parallel.ForEach(paths, (colorfile, loopState) =>
             {
-                List<string> paths = ResourcePack.GetColorFiles(path + @"\textures\blocks");
-                Parallel.ForEach(paths, (colorfile) =>
+                try
                 {
                     string colorFileDir = Path.GetDirectoryName(colorfile) +
                         Path.DirectorySeparatorChar;
@@ -94,19 +110,19 @@ namespace PbrConverter
                         new Texture(heightmapfile) : new Texture();
 
                     Dictionary<Texture, object> textures = new Dictionary<Texture, object>
-                    {
+                {
                         {colorTexture, colorfile },
                         {merTexture, merfile },
                         {normalTexture, normalfile },
                         {heightmapTexture, heightmapfile }
-                    };
+                };
                     List<Texture> texCopy = new List<Texture>(textures.Keys);
 
                     if (removeSolids)
                     {
                         Parallel.ForEach(texCopy, (texture) =>
                         {
-                        if (textures[texture] as string != normalfile && 
+                            if (textures[texture] as string != normalfile &&
                             textures[texture] as string != heightmapfile &&
                             texture.Bitmap != null && texture.Uniform)
                             {
@@ -148,8 +164,8 @@ namespace PbrConverter
                         }
                     });
 
-                    using FileStream fs = File.Create(Path.GetDirectoryName(colorfile) + @"\" +
-                        colorfilename + ".texture_set.json");
+                    using FileStream fs = File.Create($"{Path.GetDirectoryName(colorfile)}\\" +
+                        $"{colorfilename}.texture_set.json");
                     byte[] content = new UTF8Encoding(true).GetBytes(
                         JsonConvert.SerializeObject(new TextureSetModel
                         {
@@ -166,13 +182,14 @@ namespace PbrConverter
                             NullValueHandling = NullValueHandling.Ignore
                         }));
                     fs.Write(content);
-                });
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, "Error during conversion.", MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-            }
+                }
+                catch (AggregateException e)
+                {
+                    loopState.Stop();
+                    throw new FormatException("Error occurred while processing: " +
+                        $"'{Path.GetFileName(colorfile)}'\n{e.InnerExceptions[0].Message}");
+                }
+            });
         }
     }
 }
